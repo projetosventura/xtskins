@@ -10,15 +10,10 @@ import { SkinService } from './services/skin.service';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({ isGlobal: true }), // Load .env variables globally
     TypeOrmModule.forRoot({
-      type: 'oracle',
-      host: 'localhost',
-      port: 1521,
-      username: 'your_username',
-      password: 'your_password',
-      sid: 'your_sid',
-      database: 'your_database',
+      type: 'sqlite',
+      database: 'database.sqlite',
       entities: [Skin],
       synchronize: true, // Não use em produção
     }),

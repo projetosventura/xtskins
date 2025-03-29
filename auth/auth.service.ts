@@ -1,24 +1,56 @@
 import { Injectable } from '@nestjs/common';
-import * as SteamAuth from 'steam-auth';
+import * as passport from 'passport';
+import { Strategy as SteamStrategy } from 'passport-steam';
 
 @Injectable()
 export class AuthService {
-  private steam = new SteamAuth({
-    realm: 'http://localhost:3000/', // URL do site
-    returnUrl: 'http://localhost:3000/auth/steam/return', // URL de retorno
-    apiKey: 'YOUR_STEAM_API_KEY', // Substituir pela sua chave da Steam
-  });
+  private readonly steamApiKey: string;
 
-  redirectToSteam(req, res) {
-    this.steam.authenticate(req, res);
+  constructor() {
+    this.steamApiKey = process.env.STEAM_API_KEY || ''; // Load from environment variables
+    if (!this.steamApiKey) {
+      throw new Error('Steam API Key is not configured');
+    }
+
+    passport.use(
+      new SteamStrategy(
+        {
+          returnURL: 'http://localhost:3000/auth/steam/return', // URL de retorno
+          realm: 'http://localhost:3000/', // URL do site
+          apiKey: this.steamApiKey, // Substituir pela sua chave da Steam
+        },
+        (identifier, profile, done) => {
+          // Callback após autenticação
+          return done(null, profile);
+        },
+      ),
+    );
+
+    // Serialização e desserialização do usuário
+    passport.serializeUser((user, done) => {
+      done(null, user);
+    });
+
+    passport.deserializeUser((obj, done) => {
+      done(null, obj);
+    });
   }
 
-  async handleSteamReturn(req, res) {
-    try {
-      const user = await this.steam.verify(req);
+  redirectToSteam(req, res, next = () => {}) {
+    console.log('Using Steam API Key:', this.steamApiKey);
+    passport.authenticate('steam')(req, res, next);
+  }
+
+  handleSteamReturn(req, res, next = () => {}) {
+    console.log('Using Steam API Key:', this.steamApiKey);
+    passport.authenticate('steam', (err, user) => {
+      if (err) {
+        return res.status(500).send('Erro ao autenticar com a Steam');
+      }
+      if (!user) {
+        return res.status(401).send('Usuário não autenticado');
+      }
       res.json(user); // Retorna os dados do usuário autenticado
-    } catch (err) {
-      res.status(500).send('Erro ao autenticar com a Steam');
-    }
+    })(req, res, next);
   }
 }
