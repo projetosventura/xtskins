@@ -25,7 +25,7 @@ export class AuthService {
         },
       ),
     );
-
+    console.log(this.steamApiKey, 'STEAM API KEY')
     // Serialização e desserialização do usuário
     passport.serializeUser((user, done) => {
       done(null, user);

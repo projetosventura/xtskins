@@ -26,7 +26,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/typeorm": "^11.0.0",
     "axios": "^1.8.4",
-    "dotenv": "^16.4.7",
+    "dotenv": "^16.5.0",
     "openid": "^2.0.13",
     "passport": "^0.7.0",
     "passport-steam": "^1.0.18",
